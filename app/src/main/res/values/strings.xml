@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Anti Frida</string>
+    <string name="check_maps">Check Maps</string>
+    <string name="check_port">Check Port</string>
+</resources>
