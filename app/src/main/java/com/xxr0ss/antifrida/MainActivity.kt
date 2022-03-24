@@ -19,13 +19,19 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.btnCheckMaps.setOnClickListener {
-            val maps = AntiFridaUtil.getProcMaps()
-            binding.tvStatus.text = maps
-            Log.d(TAG, "btnCheckMaps clicked")
             Toast.makeText(
-                this, when (maps.contains("frida-agent")) {
+                this, when (AntiFridaUtil.checkFridaByModuleEnum("frida-agent")) {
                     true -> "frida agent detected"
                     false -> "No frida agent detected"
+                }, Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        binding.btnCheckPort.setOnClickListener {
+            Toast.makeText(
+                this, when(AntiFridaUtil.checkFridaByPort(27042)) {
+                    true -> "frida default port 27042 detected"
+                    false -> "no frida default port detected"
                 }, Toast.LENGTH_SHORT
             ).show()
         }
