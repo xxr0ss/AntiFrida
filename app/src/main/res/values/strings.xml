@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Anti Frida</string>
-    <string name="check_maps">Check Maps</string>
-    <string name="check_port">Check Port</string>
-    <string name="check_processes">Check Processes</string>
+    <string name="check_maps">Check /proc/self/maps</string>
+    <string name="check_port">Check port</string>
+    <string name="check_processes">Check processes</string>
     <string name="test_root">Test root</string>
 </resources>
