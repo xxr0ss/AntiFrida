@@ -57,10 +57,20 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnCheckProcesses.setOnClickListener {
+            if (!SuperUser.rooted){
+                Toast.makeText(this, "Get rooted first", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             UStats.logCurrentUsageStats(this)
             val result = SuperUser.execRootCmd("ps -ef")
             Log.i(TAG, "Root cmd result (size ${result.length}): $result ")
             binding.tvStatus.text = result
+
+            Toast.makeText(
+                this, if(result.contains("frida-server"))
+                    "frida-server process detected" else "no frida-server process found",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 }
