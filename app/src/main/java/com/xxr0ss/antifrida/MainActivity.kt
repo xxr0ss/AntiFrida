@@ -58,6 +58,9 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnCheckProcesses.setOnClickListener {
             UStats.logCurrentUsageStats(this)
+            val result = SuperUser.execRootCmd("ps -ef")
+            Log.i(TAG, "Root cmd result (size ${result.length}): $result ")
+            binding.tvStatus.text = result
         }
     }
 }
