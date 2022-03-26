@@ -42,9 +42,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnCheckMaps.setOnClickListener {
+            val blocklist = listOf("frida-agent", "frida-gadget")
             Toast.makeText(
-                this, if (AntiFridaUtil.checkFridaByModuleEnum("frida-agent"))
-                    "frida agent detected" else "No frida agent detected", Toast.LENGTH_SHORT
+                this, if (AntiFridaUtil.checkFridaByModuleEnum(blocklist))
+                    "frida module detected" else "No frida module detected", Toast.LENGTH_SHORT
             ).show()
         }
 

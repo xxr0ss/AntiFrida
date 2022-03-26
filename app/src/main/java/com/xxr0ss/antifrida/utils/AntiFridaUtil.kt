@@ -9,10 +9,14 @@ object AntiFridaUtil {
     private var TAG: String = "AntiFridaUtil"
 
 
-    fun checkFridaByModuleEnum(target: String): Boolean {
+    fun checkFridaByModuleEnum(targets: List<String>): Boolean {
         val maps = getProcMaps()
         Log.d(TAG, maps)
-        return target in maps
+        for (target in targets) {
+            if (target in maps)
+                return true
+        }
+        return false
     }
 
     external fun checkFridaByPort(port: Int): Boolean
