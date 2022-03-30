@@ -19,16 +19,9 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.btnTestRoot.setOnClickListener {
-            if (!SuperUser.rooted)
-                SuperUser.tryRoot(packageCodePath)
-            Log.d(TAG, if (SuperUser.rooted) "rooted" else "no root")
-            Toast.makeText(
-                this, if (SuperUser.rooted)
-                    "Rooted" else "No root",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
+        SuperUser.tryRoot(packageCodePath)
+        binding.rootStatus.text = "rooted: ${SuperUser.rooted.toString()}"
+        AntiFridaUtil.testMyRead()
 
         binding.btnCheckMaps.setOnClickListener {
             // put possible frida module names here
@@ -49,8 +42,9 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnCheckProcesses.setOnClickListener {
             if (!SuperUser.rooted){
-                Toast.makeText(this, "Get rooted first", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+                SuperUser.tryRoot(packageCodePath)
+                if (!SuperUser.rooted)
+                    return@setOnClickListener
             }
             val result = SuperUser.execRootCmd("ps -ef")
             Log.i(TAG, "Root cmd result (size ${result.length}): $result ")

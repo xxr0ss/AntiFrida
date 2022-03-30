@@ -32,6 +32,8 @@ object AntiFridaUtil {
         return ""
     }
 
+    external fun testMyRead()
+
 
     init {
         System.loadLibrary("antifrida")

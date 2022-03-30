@@ -8,6 +8,7 @@ object SuperUser {
     var rooted = false
 
     fun tryRoot(pkgCodePath: String) {
+        // try exec su and refresh `rooted`
         var process: Process? = null
         var dos: DataOutputStream? = null
         try {
