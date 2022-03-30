@@ -1,15 +1,12 @@
 package com.xxr0ss.antifrida
 
-import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.provider.Settings
 import com.xxr0ss.antifrida.databinding.ActivityMainBinding
 import com.xxr0ss.antifrida.utils.AntiFridaUtil
 import android.util.Log
 import android.widget.Toast
 import com.xxr0ss.antifrida.utils.SuperUser
-import com.xxr0ss.antifrida.utils.UStats
 
 
 class MainActivity : AppCompatActivity() {
@@ -21,14 +18,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        if (UStats.getUsageStatsList(this).isEmpty()) {
-            Log.d(TAG, "UsageStats not available")
-            val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
-            startActivity(intent)
-        } else {
-            Log.d(TAG, "UsageStats ready")
-        }
 
         binding.btnTestRoot.setOnClickListener {
             if (!SuperUser.rooted)
@@ -42,6 +31,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnCheckMaps.setOnClickListener {
+            // put possible frida module names here
             val blocklist = listOf("frida-agent", "frida-gadget")
             Toast.makeText(
                 this, if (AntiFridaUtil.checkFridaByModuleEnum(blocklist))
@@ -62,7 +52,6 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Get rooted first", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            UStats.logCurrentUsageStats(this)
             val result = SuperUser.execRootCmd("ps -ef")
             Log.i(TAG, "Root cmd result (size ${result.length}): $result ")
             binding.tvStatus.text = result
