@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="read_via">
+        <item>Java(Kotlin)</item>
+        <item>syscall</item>
+        <item>customized syscall</item>
+    </string-array>
+</resources>

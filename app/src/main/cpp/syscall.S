@@ -11,6 +11,7 @@ ENTRY(my_read)
 
     // we do not call __set_errno_internal due to a
     // bug related to https://github.com/android/ndk/issues/1422
+    // TODO: if solutions found, fix antifrida.cpp
     // b.hi    __set_errno_internal
 
     ret

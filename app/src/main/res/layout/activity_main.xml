@@ -17,52 +17,103 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:padding="10dp">
 
             <TextView
-                android:id="@+id/root_status"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:text="@string/no_need_for_root"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:layout_marginBottom="5dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <Button
+                        android:id="@+id/btn_check_maps"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/check_maps"
+                        android:textAllCaps="false" />
+
+                    <TextView
+                        android:layout_marginHorizontal="4dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/via"/>
+
+                    <Spinner
+                        android:id="@+id/spinner_via"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:entries="@array/read_via"/>
+
+                </LinearLayout>
+
+
+                <Button
+                    android:id="@+id/btn_check_port"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/check_port"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+
+
 
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:padding="10dp">
 
-            <Button
-                android:id="@+id/btn_check_maps"
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/check_maps"
-                style="?android:attr/buttonBarButtonStyle"
-                android:textAllCaps="false" />
+                android:text="@string/root_needed"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:layout_marginBottom="5dp"/>
 
-            <Button
-                android:id="@+id/btn_check_port"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/check_port"
-                style="?android:attr/buttonBarButtonStyle"
-                android:textAllCaps="false" />
+                android:orientation="horizontal">
 
-            <Button
-                android:id="@+id/btn_check_processes"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/check_processes"
-                style="?android:attr/buttonBarButtonStyle"
-                android:textAllCaps="false"/>
+                <Button
+                    android:id="@+id/btn_check_processes"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/check_processes"
+                    android:textAllCaps="false"/>
 
+            </LinearLayout>
 
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/root_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/root_status"/>
 
         <TextView
             android:id="@+id/tv_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="" />
+            android:text="@string/status" />
 
     </LinearLayout>
 

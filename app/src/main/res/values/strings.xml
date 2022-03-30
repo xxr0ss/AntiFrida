@@ -4,4 +4,9 @@
     <string name="check_port">Check port</string>
     <string name="check_processes">Check processes</string>
     <string name="test_root">Test root</string>
+    <string name="no_need_for_root">No need for root</string>
+    <string name="via">via</string>
+    <string name="root_needed">Root needed</string>
+    <string name="root_status">root status</string>
+    <string name="status">status</string>
 </resources>

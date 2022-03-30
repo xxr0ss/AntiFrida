@@ -1,11 +1,14 @@
 package com.xxr0ss.antifrida
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.widget.AdapterView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.xxr0ss.antifrida.databinding.ActivityMainBinding
 import com.xxr0ss.antifrida.utils.AntiFridaUtil
-import android.util.Log
-import android.widget.Toast
+import com.xxr0ss.antifrida.utils.ReadVia
 import com.xxr0ss.antifrida.utils.SuperUser
 
 
@@ -14,6 +17,8 @@ class MainActivity : AppCompatActivity() {
 
     private val TAG = "MainActivity"
 
+    private var read_via_pos: Int = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -21,14 +26,27 @@ class MainActivity : AppCompatActivity() {
 
         SuperUser.tryRoot(packageCodePath)
         binding.rootStatus.text = "rooted: ${SuperUser.rooted.toString()}"
-        AntiFridaUtil.testMyRead()
+
+        binding.spinnerVia.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, pos: Int, id: Long) {
+                read_via_pos = pos
+                Log.d(TAG, "onItemSelected: $pos $id")
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                Log.d(TAG, "onNothingSelected: null")
+            }
+        }
 
         binding.btnCheckMaps.setOnClickListener {
             // put possible frida module names here
             val blocklist = listOf("frida-agent", "frida-gadget")
             Toast.makeText(
-                this, if (AntiFridaUtil.checkFridaByModuleEnum(blocklist))
-                    "frida module detected" else "No frida module detected", Toast.LENGTH_SHORT
+                this,
+                (if (AntiFridaUtil.checkFridaByProcMaps(blocklist, ReadVia.fromInt(read_via_pos)))
+                    "frida module detected" else "No frida module detected")
+                        + " via ${ReadVia.fromInt(read_via_pos).name}",
+                Toast.LENGTH_SHORT
             ).show()
         }
 
@@ -41,7 +59,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnCheckProcesses.setOnClickListener {
-            if (!SuperUser.rooted){
+            if (!SuperUser.rooted) {
                 SuperUser.tryRoot(packageCodePath)
                 if (!SuperUser.rooted)
                     return@setOnClickListener
@@ -51,7 +69,7 @@ class MainActivity : AppCompatActivity() {
             binding.tvStatus.text = result
 
             Toast.makeText(
-                this, if(result.contains("frida-server"))
+                this, if (result.contains("frida-server"))
                     "frida-server process detected" else "no frida-server process found",
                 Toast.LENGTH_SHORT
             ).show()
