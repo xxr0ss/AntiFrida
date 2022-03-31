@@ -130,8 +130,8 @@ int read_pseudo_file_at(const char *path, char **buf_ptr, size_t *buf_size_ptr,
 
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_com_xxr0ss_antifrida_utils_AntiFridaUtil_nativeGetProcMaps(JNIEnv *env, jobject thiz,
-                                                                jboolean useCustomizedSyscall) {
+Java_com_xxr0ss_antifrida_utils_AntiFridaUtil_nativeReadProcMaps(JNIEnv *env, jobject thiz,
+                                                                 jboolean useCustomizedSyscall) {
     char *data = nullptr;
     size_t data_size = 0;
 

@@ -13,8 +13,8 @@ object AntiFridaUtil {
     fun checkFridaByProcMaps(targets: List<String>, via: ReadVia): Boolean {
         maps_file_content = when(via) {
             ReadVia.JVM -> readProcMaps()
-            ReadVia.ORIG_SYSCALL -> nativeGetProcMaps()
-            ReadVia.CUSTOMIZED_SYSCALL -> nativeGetProcMaps(true)
+            ReadVia.ORIG_SYSCALL -> nativeReadProcMaps()
+            ReadVia.CUSTOMIZED_SYSCALL -> nativeReadProcMaps(true)
         }
 
         if (maps_file_content == null) {
@@ -41,7 +41,7 @@ object AntiFridaUtil {
         return null
     }
 
-    private external fun nativeGetProcMaps(useCustomizedSyscall: Boolean = false): String?
+    private external fun nativeReadProcMaps(useCustomizedSyscall: Boolean = false): String?
 
     external fun checkFridaByPort(port: Int): Boolean
 
