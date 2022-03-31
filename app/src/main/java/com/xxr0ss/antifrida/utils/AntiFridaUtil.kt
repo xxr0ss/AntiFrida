@@ -11,7 +11,7 @@ object AntiFridaUtil {
     var maps_file_content: String? = null
 
     fun checkFridaByProcMaps(targets: List<String>, via: ReadVia): Boolean {
-        maps_file_content = when(via) {
+        maps_file_content = when (via) {
             ReadVia.JVM -> readProcMaps()
             ReadVia.ORIG_SYSCALL -> nativeReadProcMaps()
             ReadVia.CUSTOMIZED_SYSCALL -> nativeReadProcMaps(true)
@@ -32,10 +32,10 @@ object AntiFridaUtil {
 
 
     private fun readProcMaps(): String? {
-        try{
+        try {
             val mapsFile = File("/proc/self/maps")
             return mapsFile.readText()
-        }catch (e: Exception) {
+        } catch (e: Exception) {
             Log.e(TAG, e.stackTraceToString())
         }
         return null
@@ -44,6 +44,11 @@ object AntiFridaUtil {
     private external fun nativeReadProcMaps(useCustomizedSyscall: Boolean = false): String?
 
     external fun checkFridaByPort(port: Int): Boolean
+
+    external fun scanModulesForSignature(
+        signature: String,
+        useCustomizedSyscalls: Boolean = false
+    ): Boolean
 
     init {
         System.loadLibrary("antifrida")
@@ -55,7 +60,7 @@ enum class ReadVia(val value: Int) {
     ORIG_SYSCALL(1),
     CUSTOMIZED_SYSCALL(2);
 
-    companion object{
-        fun fromInt(value: Int) = values().first {it.value == value}
+    companion object {
+        fun fromInt(value: Int) = values().first { it.value == value }
     }
 }

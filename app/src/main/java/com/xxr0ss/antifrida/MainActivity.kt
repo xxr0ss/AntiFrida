@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
                         + " via ${ReadVia.fromInt(read_via_pos).name}",
                 Toast.LENGTH_SHORT
             ).show()
-            binding.tvStatus.text = when(AntiFridaUtil.maps_file_content) {
+            binding.tvStatus.text = when (AntiFridaUtil.maps_file_content) {
                 null -> "no maps file data"
                 else -> "maps file:\n ${AntiFridaUtil.maps_file_content}"
             }
@@ -76,6 +76,14 @@ class MainActivity : AppCompatActivity() {
                 this, if (result.contains("frida-server"))
                     "frida-server process detected" else "no frida-server process found",
                 Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        binding.btnScanModules.setOnClickListener {
+            val useMySyscalls = binding.switchUseMySyscalls.isChecked
+            Toast.makeText(
+                this, if (AntiFridaUtil.scanModulesForSignature("frida:rpc", useMySyscalls))
+                    "frida signature found" else "no frida signature found", Toast.LENGTH_SHORT
             ).show()
         }
     }

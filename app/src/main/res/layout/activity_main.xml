@@ -10,9 +10,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:orientation="vertical"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:orientation="vertical">
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -23,11 +23,11 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
                 android:text="@string/no_need_for_root"
                 android:textColor="@color/black"
-                android:textStyle="bold"
                 android:textSize="20sp"
-                android:layout_marginBottom="5dp"/>
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -42,23 +42,49 @@
                         android:id="@+id/btn_check_maps"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/check_maps"
+                        android:text="@string/enum_maps"
                         android:textAllCaps="false" />
 
                     <TextView
-                        android:layout_marginHorizontal="4dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/via"/>
+                        android:layout_marginHorizontal="4dp"
+                        android:text="@string/via" />
 
                     <Spinner
                         android:id="@+id/spinner_via"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:entries="@array/read_via"/>
+                        android:entries="@array/read_via" />
 
                 </LinearLayout>
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <Button
+                        android:id="@+id/btn_scan_modules"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/scan_modules"
+                        android:textAllCaps="false" />
+
+                    <Space
+                        android:layout_width="10dp"
+                        android:layout_height="wrap_content" />
+
+                    <Switch
+                        android:id="@+id/switch_use_my_syscalls"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/use_customized_syscalls"
+                        android:textOff="@string/disabled"
+                        android:textOn="@string/enabled"
+                        tools:ignore="UseSwitchCompatOrMaterialXml" />
+
+
+                </LinearLayout>
 
                 <Button
                     android:id="@+id/btn_check_port"
@@ -66,8 +92,8 @@
                     android:layout_height="wrap_content"
                     android:text="@string/check_port"
                     android:textAllCaps="false" />
-            </LinearLayout>
 
+            </LinearLayout>
 
 
         </LinearLayout>
@@ -81,11 +107,11 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
                 android:text="@string/root_needed"
                 android:textColor="@color/black"
-                android:textStyle="bold"
                 android:textSize="20sp"
-                android:layout_marginBottom="5dp"/>
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -97,7 +123,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/check_processes"
-                    android:textAllCaps="false"/>
+                    android:textAllCaps="false" />
 
             </LinearLayout>
 
@@ -107,7 +133,7 @@
             android:id="@+id/root_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/root_status"/>
+            android:text="@string/root_status" />
 
         <TextView
             android:id="@+id/tv_status"

@@ -10,6 +10,9 @@
 #include <sys/stat.h>
 #include <cstdlib>
 #include <string>
+#include <elf.h>
+#include <link.h>
+
 
 #define unused_param(x) (x)
 
@@ -73,9 +76,8 @@ int read_pseudo_file_at(const char *path, char **buf_ptr, size_t *buf_size_ptr,
 
     /* Open pseudo file */
     int fd = use_customized_syscalls ?
-             my_openat(AT_FDCWD, MAPS_FILE, O_RDONLY | O_CLOEXEC | O_NOCTTY, 0)
-                                     : openat(AT_FDCWD, MAPS_FILE, O_RDONLY | O_CLOEXEC | O_NOCTTY,
-                                              0);
+             my_openat(AT_FDCWD, MAPS_FILE, O_RDONLY | O_CLOEXEC, 0)
+                                     : openat(AT_FDCWD, MAPS_FILE, O_RDONLY | O_CLOEXEC, 0);
 
     if (fd == -1) {
         __android_log_print(ANDROID_LOG_INFO, TAG, "openat error %s : %d", strerror(errno), errno);
@@ -125,7 +127,7 @@ int read_pseudo_file_at(const char *path, char **buf_ptr, size_t *buf_size_ptr,
         memset(buf + total_read_size, 0, buf_size - total_read_size);
 
     errno = 0;
-    return total_read_size;
+    return (int)total_read_size;
 }
 
 extern "C"
@@ -154,4 +156,114 @@ Java_com_xxr0ss_antifrida_utils_AntiFridaUtil_nativeReadProcMaps(JNIEnv *env, jo
     jstring str = env->NewStringUTF(data);
     free(data);
     return str;
+}
+
+int read_line(int fd, char *ptr, unsigned int maxlen, jboolean use_customized_syscall) {
+    int n;
+    long rc;
+    char c;
+
+    for (n = 1; n < maxlen; n++) {
+        rc = use_customized_syscall ? my_read(fd, &c, 1) : read(fd, &c, 1);
+        if (rc == 1) {
+            *ptr++ = c;
+            if (c == '\n')
+                break;
+        } else if (rc == 0) {
+            if (n == 1)
+                return 0;    /* EOF no data read */
+            else
+                break;    /* EOF, some data read */
+        } else
+            return (-1);    /* error */
+    }
+    *ptr = 0;
+    return (n);
+}
+
+int wrap_endsWith(const char *str, const char *suffix) {
+    if (!str || !suffix)
+        return 0;
+    size_t lenA = strlen(str);
+    size_t lenB = strlen(suffix);
+    if (lenB > lenA)
+        return 0;
+    return strncmp(str + lenA - lenB, suffix, lenB) == 0;
+}
+
+int elf_check_header(uintptr_t base_addr) {
+    auto *ehdr = (ElfW(Ehdr) *) base_addr;
+    if (0 != memcmp(ehdr->e_ident, ELFMAG, SELFMAG)) return 0;
+#if defined(__LP64__)
+    if (ELFCLASS64 != ehdr->e_ident[EI_CLASS]) return 0;
+#else
+    if (ELFCLASS32 != ehdr->e_ident[EI_CLASS]) return 0;
+#endif
+    if (ELFDATA2LSB != ehdr->e_ident[EI_DATA]) return 0;
+    if (EV_CURRENT != ehdr->e_ident[EI_VERSION]) return 0;
+    if (ET_EXEC != ehdr->e_type && ET_DYN != ehdr->e_type) return 0;
+    if (EV_CURRENT != ehdr->e_version) return 0;
+    return 1;
+}
+
+int find_mem_string(uint64_t base, uint64_t end, unsigned char *ptr, unsigned int len) {
+    auto *rc = (unsigned char *) base;
+
+    while ((uint64_t) rc < end - len) {
+        if (*rc == *ptr) {
+            if (memcmp(rc, ptr, len) == 0) {
+                return 1;
+            }
+        }
+        rc++;
+    }
+    return 0;
+}
+
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_xxr0ss_antifrida_utils_AntiFridaUtil_scanModulesForSignature(JNIEnv *env, jobject thiz,
+                                                                      jstring signature,
+                                                                      jboolean use_customized_syscalls) {
+    int fd = use_customized_syscalls ? my_openat(AT_FDCWD, MAPS_FILE, O_RDONLY | O_CLOEXEC, 0)
+                                     : openat(AT_FDCWD, MAPS_FILE, O_RDONLY | O_CLOEXEC, 0);
+    if (fd == -1) {
+        __android_log_print(ANDROID_LOG_INFO, TAG, "openat error %s : %d", strerror(errno), errno);
+        return -1;
+    }
+
+    const int buf_size = 512;
+    char buf[buf_size];
+    char path[256];
+    char perm[5];
+    const char *sig = env->GetStringUTFChars(signature, nullptr);
+    size_t sig_len = strlen(sig);
+
+    uint64_t base, end, offset;
+    jboolean result = JNI_FALSE;
+
+    while ((read_line(fd, buf, buf_size, use_customized_syscalls)) > 0) {
+        if (sscanf(buf, "%lx-%lx %4s %lx %*s %*s %s", &base, &end, perm, &offset, path) != 5) {
+            continue;
+        }
+
+        if (perm[0] != 'r') continue;
+        if (perm[3] != 'p') continue; //do not touch the shared memory
+        if (0 != offset) continue;
+        if (strlen(path) == 0) continue;
+        if ('[' == path[0]) continue;
+        if (end - base <= 1000000) continue;
+        if (wrap_endsWith(path, ".oat")) continue;
+        if (elf_check_header(base) != 1) continue;
+
+        if (find_mem_string(base, end, (unsigned char *) sig, sig_len) == 1) {
+            __android_log_print(ANDROID_LOG_INFO, TAG,
+                                "frida signature \"%s\" found in %lx - %lx", sig, base, end);
+            result = JNI_TRUE;
+            break;
+        }
+    }
+
+    return result;
 }

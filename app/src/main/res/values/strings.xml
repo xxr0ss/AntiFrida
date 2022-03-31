@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Anti Frida</string>
-    <string name="check_maps">Check /proc/self/maps</string>
+    <string name="enum_maps">Enum modules</string>
     <string name="check_port">Check port</string>
     <string name="check_processes">Check processes</string>
     <string name="test_root">Test root</string>
@@ -9,4 +9,8 @@
     <string name="root_needed">Root needed</string>
     <string name="root_status">root status</string>
     <string name="status">status</string>
+    <string name="scan_modules">Scan modules</string>
+    <string name="use_customized_syscalls">Use customized syscalls</string>
+    <string name="enabled">enabled</string>
+    <string name="disabled">disabled</string>
 </resources>
