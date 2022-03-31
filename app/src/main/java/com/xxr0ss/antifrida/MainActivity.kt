@@ -17,7 +17,7 @@ class MainActivity : AppCompatActivity() {
 
     private val TAG = "MainActivity"
 
-    private var read_via_pos: Int = 0
+    private var posReadVia: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.spinnerVia.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, pos: Int, id: Long) {
-                read_via_pos = pos
+                posReadVia = pos
                 Log.d(TAG, "onItemSelected: $pos $id")
             }
 
@@ -43,9 +43,9 @@ class MainActivity : AppCompatActivity() {
             val blocklist = listOf("frida-agent", "frida-gadget")
             Toast.makeText(
                 this,
-                (if (AntiFridaUtil.checkFridaByProcMaps(blocklist, ReadVia.fromInt(read_via_pos)))
+                (if (AntiFridaUtil.checkFridaByProcMaps(blocklist, ReadVia.fromInt(posReadVia)))
                     "frida module detected" else "No frida module detected")
-                        + " via ${ReadVia.fromInt(read_via_pos).name}",
+                        + " via ${ReadVia.fromInt(posReadVia).name}",
                 Toast.LENGTH_SHORT
             ).show()
             binding.textStatus.editableText.clear()
