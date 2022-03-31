@@ -48,10 +48,13 @@ class MainActivity : AppCompatActivity() {
                         + " via ${ReadVia.fromInt(read_via_pos).name}",
                 Toast.LENGTH_SHORT
             ).show()
-            binding.tvStatus.text = when (AntiFridaUtil.maps_file_content) {
-                null -> "no maps file data"
-                else -> "maps file:\n ${AntiFridaUtil.maps_file_content}"
-            }
+            binding.textStatus.editableText.clear()
+            binding.textStatus.editableText.append(
+                when (AntiFridaUtil.maps_file_content) {
+                    null -> "no maps file data"
+                    else -> "maps file:\n ${AntiFridaUtil.maps_file_content}"
+                }
+            )
         }
 
         binding.btnCheckPort.setOnClickListener {
@@ -70,7 +73,8 @@ class MainActivity : AppCompatActivity() {
             }
             val result = SuperUser.execRootCmd("ps -ef")
             Log.i(TAG, "Root cmd result (size ${result.length}): $result ")
-            binding.tvStatus.text = result
+            binding.textStatus.text.clear()
+            binding.textStatus.text.append(result)
 
             Toast.makeText(
                 this, if (result.contains("frida-server"))

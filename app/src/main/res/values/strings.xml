@@ -7,8 +7,8 @@
     <string name="no_need_for_root">No need for root</string>
     <string name="via">via</string>
     <string name="root_needed">Root needed</string>
-    <string name="root_status">root status</string>
-    <string name="status">status</string>
+    <string name="root_status">Root status</string>
+    <string name="status">Status:</string>
     <string name="scan_modules">Scan modules</string>
     <string name="use_customized_syscalls">Use customized syscalls</string>
     <string name="enabled">enabled</string>
