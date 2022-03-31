@@ -8,28 +8,30 @@ import android.util.Log
 object AntiFridaUtil {
     private var TAG: String = "AntiFridaUtil"
 
+    var maps_file_content: String? = null
+
     fun checkFridaByProcMaps(targets: List<String>, via: ReadVia): Boolean {
-        val maps = when(via) {
-            ReadVia.JVM -> getProcMaps()
+        maps_file_content = when(via) {
+            ReadVia.JVM -> readProcMaps()
             ReadVia.ORIG_SYSCALL -> nativeGetProcMaps()
             ReadVia.CUSTOMIZED_SYSCALL -> nativeGetProcMaps(true)
         }
 
-        if (maps == null) {
+        if (maps_file_content == null) {
             Log.d(TAG, "maps got null")
             return false
         }
 
-        Log.d(TAG, maps)
+        Log.d(TAG, maps_file_content!!)
         for (target in targets) {
-            if (target in maps)
+            if (target in maps_file_content!!)
                 return true
         }
         return false
     }
 
 
-    private fun getProcMaps(): String? {
+    private fun readProcMaps(): String? {
         try{
             val mapsFile = File("/proc/self/maps")
             return mapsFile.readText()

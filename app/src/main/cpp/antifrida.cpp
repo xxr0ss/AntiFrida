@@ -14,8 +14,12 @@
 #define unused_param(x) (x)
 
 const char MAPS_FILE[] = "/proc/self/maps";
+const char TAG[] = "JNI";
 
-extern "C" int my_read(int, void *, int);
+// customized syscalls
+extern "C" int my_read(int, void *, size_t);
+extern "C" int
+my_openat(int dirfd, const char *const __pass_object_size pathname, int flags, mode_t modes);
 
 extern "C"
 JNIEXPORT jboolean JNICALL
@@ -37,44 +41,119 @@ Java_com_xxr0ss_antifrida_utils_AntiFridaUtil_checkFridaByPort(JNIEnv *env, jobj
     return JNI_FALSE;
 }
 
-extern "C"
-JNIEXPORT jstring JNICALL
-Java_com_xxr0ss_antifrida_utils_AntiFridaUtil_nativeGetProcMaps(JNIEnv *env, jobject thiz, jboolean useCustomizedSyscall) {
-    // check /proc/self/maps file size
-    int fd = openat(AT_FDCWD, MAPS_FILE, O_RDONLY, 0);
-
-    int buf_increase_size = 1024;
-    int buf_size = buf_increase_size;
-    char *readBuf = (char *) malloc(buf_size);
-    int total_read = 0;
-
-    while (true) {
-        ssize_t read_size = useCustomizedSyscall ?
-                read(fd, readBuf + total_read, buf_increase_size)
-                : my_read(fd, readBuf + total_read, buf_increase_size);
-        total_read += (int) read_size;
-        if (!total_read) {
-            // read failed
-            break;
-        }
-        if (read_size < buf_increase_size)
-            break;
-        buf_size += buf_increase_size;
-        readBuf = (char *) realloc(readBuf, buf_size);
+/*  Read pseudo files in paths like /proc /sys
+ *  *buf_ptr can be existing dynamic memory or nullptr (if so, this function
+ *  will alloc memory automatically).
+ *  remember to free the *buf_ptr because in no cases will *buf_ptr be
+ *  freed inside this function
+ *  return -1 on error, or non-negative value on success
+ * */
+int read_pseudo_file_at(const char *path, char **buf_ptr, size_t *buf_size_ptr,
+                           bool use_customized_syscalls) {
+    if (!path || !*path || !buf_ptr || !buf_size_ptr) {
+        errno = EINVAL;
+        return -1;
     }
-    close(fd);
 
-    if (total_read == 0) {
+    char *buf;
+    size_t buf_size, total_read_size = 0;
+
+    /* Existing dynamic buffer, or a new buffer? */
+    buf_size = *buf_size_ptr;
+    if (!buf_size)
+        *buf_ptr = nullptr;
+    buf = *buf_ptr;
+
+    /* Open pseudo file */
+    int fd = use_customized_syscalls ?
+             my_openat(AT_FDCWD, MAPS_FILE,O_RDONLY | O_CLOEXEC | O_NOCTTY, 0)
+             : openat(AT_FDCWD, MAPS_FILE, O_RDONLY | O_CLOEXEC | O_NOCTTY, 0);
+
+    if (fd == -1) {
         // for the issue mentioned https://github.com/android/ndk/issues/1422
         // our customized syscall currently ignored the call to __set_errno_internal()
-        __android_log_print(ANDROID_LOG_INFO, "JNI", "read 0 bytes, errno %s: %d",
+        __android_log_print(ANDROID_LOG_INFO, TAG,
+                            "openat error %s : %d",
+                            use_customized_syscalls ? "unknown" : strerror(errno),
+                            use_customized_syscalls ? 0 : errno);
+        return -1;
+    }
+
+    while (true) {
+        if(total_read_size >= buf_size) {
+            /* linear size growth
+             * buf_size grow ~4k bytes each time, 32 bytes for zero padding
+             * */
+            buf_size = (total_read_size | 4095) + 4097 - 32;
+            buf = (char*)realloc(buf, buf_size);
+            if (!buf) {
+                close(fd);
+                errno = ENOMEM;
+                return -1;
+            }
+            *buf_ptr = buf;
+            *buf_size_ptr = buf_size;
+        }
+
+        size_t n = use_customized_syscalls?
+                my_read(fd, buf + total_read_size, buf_size - total_read_size)
+                : read(fd, buf + total_read_size, buf_size - total_read_size);
+        if (n > 0) {
+            total_read_size += n;
+        } else if (n == 0) {
+            break;
+        } else if (n == -1) {
+            if (!use_customized_syscalls) {
+                // errno is available for std syscalls
+                const int  saved_errno = errno;
+                close(fd);
+                errno = saved_errno;
+                return -1;
+            }
+            close(fd);
+            return -1;
+        }
+    }
+
+    if (close(fd) == -1) {
+        /* errno set by close(). */
+        return -1;
+    }
+
+    if (total_read_size + 32 > buf_size)
+        memset(buf + total_read_size, 0, 32);
+    else
+        memset(buf + total_read_size, 0, buf_size - total_read_size);
+
+    errno = 0;
+    return total_read_size;
+}
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_xxr0ss_antifrida_utils_AntiFridaUtil_nativeGetProcMaps(JNIEnv *env, jobject thiz,
+                                                                jboolean useCustomizedSyscall) {
+    char *data = nullptr;
+    size_t data_size = 0;
+
+    int res = read_pseudo_file_at(MAPS_FILE, &data, &data_size, useCustomizedSyscall);
+    if (res == -1) {
+        __android_log_print(ANDROID_LOG_ERROR, TAG,
+                            "read_pseudo_file %s failed, errno %s: %d", MAPS_FILE,
                             useCustomizedSyscall? "unknown" : strerror(errno),
-                            useCustomizedSyscall? 0 : errno);
+                            useCustomizedSyscall? 0: errno);
+        if(data) {
+            free(data);
+        }
+        return nullptr;
+    }else if (res == 0) {
+        __android_log_print(ANDROID_LOG_INFO, TAG, "read_pseudo_file had read 0 bytes");
+        if (data) {
+            free(data);
+        }
         return nullptr;
     }
-    readBuf[total_read] = 0;
-
-    jstring res = env->NewStringUTF(readBuf);
-    free(readBuf);
-    return res;
+    jstring str = env->NewStringUTF(data);
+    free(data);
+    return str;
 }

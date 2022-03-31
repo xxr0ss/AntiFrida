@@ -48,6 +48,10 @@ class MainActivity : AppCompatActivity() {
                         + " via ${ReadVia.fromInt(read_via_pos).name}",
                 Toast.LENGTH_SHORT
             ).show()
+            binding.tvStatus.text = when(AntiFridaUtil.maps_file_content) {
+                null -> "no maps file data"
+                else -> "maps file:\n ${AntiFridaUtil.maps_file_content}"
+            }
         }
 
         binding.btnCheckPort.setOnClickListener {
