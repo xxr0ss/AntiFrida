@@ -12,6 +12,7 @@
 #include <string>
 #include <elf.h>
 #include <link.h>
+#include <sys/ptrace.h>
 
 
 #define unused_param(x) (x)
@@ -23,6 +24,7 @@ const char TAG[] = "JNI";
 extern "C" int my_read(int, void *, size_t);
 extern "C" int
 my_openat(int dirfd, const char *const __pass_object_size pathname, int flags, mode_t modes);
+extern "C" long my_ptrace(int __request, ...);
 
 // Our customized __set_errno_internal for syscall.S to use.
 // we do not use the one from libc due to issue https://github.com/android/ndk/issues/1422
@@ -266,4 +268,12 @@ Java_com_xxr0ss_antifrida_utils_AntiFridaUtil_scanModulesForSignature(JNIEnv *en
     }
 
     return result;
+}
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_xxr0ss_antifrida_utils_AntiFridaUtil_checkBeingDebugged(JNIEnv *env, jobject thiz,
+                                                                 jboolean use_customized_syscall) {
+
+    long res = use_customized_syscall ? my_ptrace(PTRACE_TRACEME, 0) : ptrace(PTRACE_TRACEME, 0);
+    return res < 0 ? JNI_TRUE: JNI_FALSE;
 }

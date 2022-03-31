@@ -50,6 +50,8 @@ object AntiFridaUtil {
         useCustomizedSyscalls: Boolean = false
     ): Boolean
 
+    external fun checkBeingDebugged(useCustomizedSyscall: Boolean=false): Boolean
+
     init {
         System.loadLibrary("antifrida")
     }

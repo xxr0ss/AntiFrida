@@ -13,4 +13,5 @@
     <string name="use_customized_syscalls">Use customized syscalls</string>
     <string name="enabled">enabled</string>
     <string name="disabled">disabled</string>
+    <string name="check_being_debugged">Check being debugged</string>
 </resources>

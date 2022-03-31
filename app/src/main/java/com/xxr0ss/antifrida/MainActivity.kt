@@ -85,9 +85,24 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnScanModules.setOnClickListener {
             val useMySyscalls = binding.switchUseMySyscalls.isChecked
+            // not all signatures here exist in the latest frida modules
+            val blockList = listOf("frida:rpc", "LIBFRIDA")
+            var detected = false;
+            blockList.forEach {
+                detected = AntiFridaUtil.scanModulesForSignature(it, useMySyscalls)
+            }
+
             Toast.makeText(
-                this, if (AntiFridaUtil.scanModulesForSignature("frida:rpc", useMySyscalls))
+                this, if (detected)
                     "frida signature found" else "no frida signature found", Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        binding.btnCheckBeingDebugged.setOnClickListener {
+            val useMySyscalls = binding.switchUseMySyscalls.isChecked
+            Toast.makeText(
+                this, if (AntiFridaUtil.checkBeingDebugged(useMySyscalls))
+                    "Being debugged" else "Not being debugged", Toast.LENGTH_SHORT
             ).show()
         }
     }

@@ -20,6 +20,15 @@ ENTRY(my_openat)
     ret
 END(my_openat)
 
+ENTRY(my_ptrace)
+    mov     x8, __NR_ptrace
+    svc     #0
+    cmn     x0, #(MAX_ERRNO + 1)
+    cneg    x0, x0, hi
+    b.hi    __set_errno_internal
+    ret
+END(my_ptrace)
+
 #elif defined(__x86_64__)
 
 ENTRY(my_read)
@@ -45,5 +54,14 @@ ENTRY(my_openat)
 my_openat_return:
     ret
 END(my_openat)
+
+ENTRY(my_ptrace)
+    mov     x8, __NR_ptrace
+    svc     #0
+    cmn     x0, #(MAX_ERRNO + 1)
+    cneg    x0, x0, hi
+    b.hi    __set_errno_internal
+    ret
+END(my_ptrace)
 
 #endif
