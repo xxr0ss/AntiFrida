@@ -21,6 +21,13 @@ extern "C" int my_read(int, void *, size_t);
 extern "C" int
 my_openat(int dirfd, const char *const __pass_object_size pathname, int flags, mode_t modes);
 
+// Our customized __set_errno_internal for syscall.S to use.
+// we do not use the one from libc due to issue https://github.com/android/ndk/issues/1422
+extern "C" long __set_errno_internal(int n) {
+    errno = n;
+    return -1;
+}
+
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_xxr0ss_antifrida_utils_AntiFridaUtil_checkFridaByPort(JNIEnv *env, jobject thiz,
@@ -49,7 +56,7 @@ Java_com_xxr0ss_antifrida_utils_AntiFridaUtil_checkFridaByPort(JNIEnv *env, jobj
  *  return -1 on error, or non-negative value on success
  * */
 int read_pseudo_file_at(const char *path, char **buf_ptr, size_t *buf_size_ptr,
-                           bool use_customized_syscalls) {
+                        bool use_customized_syscalls) {
     if (!path || !*path || !buf_ptr || !buf_size_ptr) {
         errno = EINVAL;
         return -1;
@@ -66,26 +73,22 @@ int read_pseudo_file_at(const char *path, char **buf_ptr, size_t *buf_size_ptr,
 
     /* Open pseudo file */
     int fd = use_customized_syscalls ?
-             my_openat(AT_FDCWD, MAPS_FILE,O_RDONLY | O_CLOEXEC | O_NOCTTY, 0)
-             : openat(AT_FDCWD, MAPS_FILE, O_RDONLY | O_CLOEXEC | O_NOCTTY, 0);
+             my_openat(AT_FDCWD, MAPS_FILE, O_RDONLY | O_CLOEXEC | O_NOCTTY, 0)
+                                     : openat(AT_FDCWD, MAPS_FILE, O_RDONLY | O_CLOEXEC | O_NOCTTY,
+                                              0);
 
     if (fd == -1) {
-        // for the issue mentioned https://github.com/android/ndk/issues/1422
-        // our customized syscall currently ignored the call to __set_errno_internal()
-        __android_log_print(ANDROID_LOG_INFO, TAG,
-                            "openat error %s : %d",
-                            use_customized_syscalls ? "unknown" : strerror(errno),
-                            use_customized_syscalls ? 0 : errno);
+        __android_log_print(ANDROID_LOG_INFO, TAG, "openat error %s : %d", strerror(errno), errno);
         return -1;
     }
 
     while (true) {
-        if(total_read_size >= buf_size) {
+        if (total_read_size >= buf_size) {
             /* linear size growth
              * buf_size grow ~4k bytes each time, 32 bytes for zero padding
              * */
             buf_size = (total_read_size | 4095) + 4097 - 32;
-            buf = (char*)realloc(buf, buf_size);
+            buf = (char *) realloc(buf, buf_size);
             if (!buf) {
                 close(fd);
                 errno = ENOMEM;
@@ -95,22 +98,18 @@ int read_pseudo_file_at(const char *path, char **buf_ptr, size_t *buf_size_ptr,
             *buf_size_ptr = buf_size;
         }
 
-        size_t n = use_customized_syscalls?
-                my_read(fd, buf + total_read_size, buf_size - total_read_size)
-                : read(fd, buf + total_read_size, buf_size - total_read_size);
+        size_t n = use_customized_syscalls ?
+                   my_read(fd, buf + total_read_size, buf_size - total_read_size)
+                                           : read(fd, buf + total_read_size,
+                                                  buf_size - total_read_size);
         if (n > 0) {
             total_read_size += n;
         } else if (n == 0) {
             break;
         } else if (n == -1) {
-            if (!use_customized_syscalls) {
-                // errno is available for std syscalls
-                const int  saved_errno = errno;
-                close(fd);
-                errno = saved_errno;
-                return -1;
-            }
+            const int saved_errno = errno;
             close(fd);
+            errno = saved_errno;
             return -1;
         }
     }
@@ -139,14 +138,13 @@ Java_com_xxr0ss_antifrida_utils_AntiFridaUtil_nativeGetProcMaps(JNIEnv *env, job
     int res = read_pseudo_file_at(MAPS_FILE, &data, &data_size, useCustomizedSyscall);
     if (res == -1) {
         __android_log_print(ANDROID_LOG_ERROR, TAG,
-                            "read_pseudo_file %s failed, errno %s: %d", MAPS_FILE,
-                            useCustomizedSyscall? "unknown" : strerror(errno),
-                            useCustomizedSyscall? 0: errno);
-        if(data) {
+                            "read_pseudo_file %s failed, errno %s: %d",
+                            MAPS_FILE, strerror(errno), errno);
+        if (data) {
             free(data);
         }
         return nullptr;
-    }else if (res == 0) {
+    } else if (res == 0) {
         __android_log_print(ANDROID_LOG_INFO, TAG, "read_pseudo_file had read 0 bytes");
         if (data) {
             free(data);
