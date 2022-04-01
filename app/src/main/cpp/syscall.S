@@ -56,11 +56,14 @@ my_openat_return:
 END(my_openat)
 
 ENTRY(my_ptrace)
-    mov     x8, __NR_ptrace
-    svc     #0
-    cmn     x0, #(MAX_ERRNO + 1)
-    cneg    x0, x0, hi
-    b.hi    __set_errno_internal
+    movl    $__NR_ptrace, %eax
+    syscall
+    cmpq    $-MAX_ERRNO, %rax
+    jb      my_ptrace_return
+    negl    %eax
+    movl    %eax, %edi
+    call    __set_errno_internal
+my_ptrace_return:
     ret
 END(my_ptrace)
 
