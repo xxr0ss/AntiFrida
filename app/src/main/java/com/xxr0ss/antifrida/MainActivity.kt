@@ -19,6 +19,9 @@ class MainActivity : AppCompatActivity() {
 
     private var posReadVia: Int = 0
 
+    // put possible frida module names here
+    private val frida_module_blocklist = listOf("frida-agent", "frida-gadget")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -39,11 +42,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnCheckMaps.setOnClickListener {
-            // put possible frida module names here
-            val blocklist = listOf("frida-agent", "frida-gadget")
             Toast.makeText(
                 this,
-                (if (AntiFridaUtil.checkFridaByProcMaps(blocklist, ReadVia.fromInt(posReadVia)))
+                (if (AntiFridaUtil.checkFridaByProcMaps(
+                        frida_module_blocklist,
+                        ReadVia.fromInt(posReadVia)
+                    )
+                )
                     "frida module detected" else "No frida module detected")
                         + " via ${ReadVia.fromInt(posReadVia).name}",
                 Toast.LENGTH_SHORT
@@ -104,6 +109,31 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(
                 this, if (AntiFridaUtil.checkBeingDebugged(useMySyscalls))
                     "Being debugged" else "Not being debugged", Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        binding.btnCheckPmap.setOnClickListener {
+            if (!SuperUser.rooted) {
+                SuperUser.tryRoot(packageCodePath)
+                if (!SuperUser.rooted)
+                    return@setOnClickListener
+            }
+
+            val result = SuperUser.execRootCmd("pmap ${android.os.Process.myPid()}")
+            Log.i(TAG, "Root cmd result (size ${result.length}): $result ")
+            binding.textStatus.text.clear()
+            binding.textStatus.text.append(result)
+            var moduleExists = false
+            for (module in frida_module_blocklist) {
+                if (result.contains(module)) {
+                    moduleExists = true
+                }
+            }
+
+            Toast.makeText(
+                this, if (moduleExists)
+                    "frida module detected" else "no frida module found",
+                Toast.LENGTH_SHORT
             ).show()
         }
     }

@@ -140,6 +140,13 @@
                     android:text="@string/check_processes"
                     android:textAllCaps="false" />
 
+                <Button
+                    android:id="@+id/btn_check_pmap"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Check pmap"
+                    android:textAllCaps="false"/>
+
             </LinearLayout>
 
         </LinearLayout>
