@@ -77,9 +77,9 @@ int read_pseudo_file_at(const char *path, char **buf_ptr, size_t *buf_size_ptr,
     buf = *buf_ptr;
 
     /* Open pseudo file */
-    int fd = use_customized_syscalls ?
-             my_openat(AT_FDCWD, MAPS_FILE, O_RDONLY | O_CLOEXEC, 0)
-                                     : openat(AT_FDCWD, MAPS_FILE, O_RDONLY | O_CLOEXEC, 0);
+    int fd = use_customized_syscalls
+             ? my_openat(AT_FDCWD, path, O_RDONLY | O_CLOEXEC, 0)
+             : openat(AT_FDCWD, path, O_RDONLY | O_CLOEXEC, 0);
 
     if (fd == -1) {
         __android_log_print(ANDROID_LOG_INFO, TAG, "openat error %s : %d", strerror(errno), errno);
@@ -102,10 +102,9 @@ int read_pseudo_file_at(const char *path, char **buf_ptr, size_t *buf_size_ptr,
             *buf_size_ptr = buf_size;
         }
 
-        size_t n = use_customized_syscalls ?
-                   my_read(fd, buf + total_read_size, buf_size - total_read_size)
-                                           : read(fd, buf + total_read_size,
-                                                  buf_size - total_read_size);
+        ssize_t n = use_customized_syscalls
+                   ? my_read(fd, buf + total_read_size, buf_size - total_read_size)
+                   : read(fd, buf + total_read_size, buf_size - total_read_size);
         if (n > 0) {
             total_read_size += n;
         } else if (n == 0) {
@@ -269,11 +268,14 @@ Java_com_xxr0ss_antifrida_utils_AntiFridaUtil_scanModulesForSignature(JNIEnv *en
 
     return result;
 }
+
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_xxr0ss_antifrida_utils_AntiFridaUtil_checkBeingDebugged(JNIEnv *env, jobject thiz,
                                                                  jboolean use_customized_syscall) {
 
-    long res = use_customized_syscall ? my_ptrace(PTRACE_TRACEME, 0) : ptrace(PTRACE_TRACEME, 0);
-    return res < 0 ? JNI_TRUE: JNI_FALSE;
+    long res = use_customized_syscall
+               ? my_ptrace(PTRACE_TRACEME, 0)
+               : ptrace(PTRACE_TRACEME, 0);
+    return res < 0 ? JNI_TRUE : JNI_FALSE;
 }
