@@ -28,9 +28,69 @@ ENTRY(my_ptrace)
     b.hi    __set_errno_internal
     ret
 END(my_ptrace)
+# endif
 
-#elif defined(__x86_64__)
+#if defined(__arm__)
+ENTRY(my_read)
+    mov     ip, sp
+    stmfd   sp!, {r4, r5, r6, r7}
+    .cfi_def_cfa_offset 16
+    .cfi_rel_offset r4, 0
+    .cfi_rel_offset r5, 4
+    .cfi_rel_offset r6, 8
+    .cfi_rel_offset r7, 12
+    ldmfd   ip, {r4, r5, r6}
+    ldr     r7, =__NR_read
+    swi     #0
+    ldmfd   sp!, {r4, r5, r6, r7}
+    .cfi_def_cfa_offset 0
+    cmn     r0, #(MAX_ERRNO + 1)
+    bxls    lr
+    neg     r0, r0
+    b       __set_errno_internal
+END(my_read)
 
+ENTRY(my_openat)
+    mov     ip, sp
+    stmfd   sp!, {r4, r5, r6, r7}
+    .cfi_def_cfa_offset 16
+    .cfi_rel_offset r4, 0
+    .cfi_rel_offset r5, 4
+    .cfi_rel_offset r6, 8
+    .cfi_rel_offset r7, 12
+    ldmfd   ip, {r4, r5, r6}
+    ldr     r7, =__NR_openat
+    swi     #0
+    ldmfd   sp!, {r4, r5, r6, r7}
+    .cfi_def_cfa_offset 0
+    cmn     r0, #(MAX_ERRNO + 1)
+    bxls    lr
+    neg     r0, r0
+    b       __set_errno_internal
+END(my_openat)
+
+ENTRY(my_ptrace)
+    mov     ip, r7
+    mov     ip, sp
+    stmfd   sp!, {r4, r5, r6, r7}
+    .cfi_def_cfa_offset 16
+    .cfi_rel_offset r4, 0
+    .cfi_rel_offset r5, 4
+    .cfi_rel_offset r6, 8
+    .cfi_rel_offset r7, 12
+    ldmfd   ip, {r4, r5, r6}
+    ldr     r7, =__NR_ptrace
+    swi     #0
+    ldmfd   sp!, {r4, r5, r6, r7}
+    .cfi_def_cfa_offset 0
+    cmn     r0, #(MAX_ERRNO + 1)
+    bxls    lr
+    neg     r0, r0
+    b       __set_errno_internal
+END(my_ptrace)
+#endif
+
+#if defined(__x86_64__)
 ENTRY(my_read)
     movl    $__NR_read, %eax
     syscall
