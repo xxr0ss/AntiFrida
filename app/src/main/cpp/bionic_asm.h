@@ -28,8 +28,8 @@
 
 #pragma once
 
-///* https://github.com/android/ndk/issues/1422 */
-//#include <features.h>
+// /* https://github.com/android/ndk/issues/1422 */
+// #include <features.h>
 
 #include <asm/unistd.h> /* For system call numbers. */
 
@@ -40,22 +40,23 @@
 #define __bionic_asm_function_type @function
 #define __bionic_asm_custom_note_gnu_section()
 
-/* Instead of including "<private/bionic_asm_{ARCH}.h>"s, which are no in NDK but AOSP source
- * we manually define what we need in them.
- *
- * Checkout AOSP source and write corresponding syscalls to add new architectures
- *      common/include/uapi/asm-generic/unistd.h
- *      bionic/libc/bionic/__set_errno.cpp
- *      bionic/libc/tools/gensyscalls.py
- *
+/* Instead of including "<private/bionic_asm_{ARCH}.h>"s, which are private in
+ * AOSP and not available in Android NDK, we copy what we need in them and paste
+ * them into the following architecture-specific defines. This makes our
+ * "bionic_asm.h" a standalone header file.
 */
 #if defined(__aarch64__)
-//#include <private/bionic_asm_arm64.h>
+
+// #include <private/bionic_asm_arm64.h>
+// == NOTE: code here is copied from "bionic_asm_arm64.h" ==
 #define __bionic_asm_align 16
 #undef __bionic_asm_function_type
 #define __bionic_asm_function_type %function
+// =========================================================
+
 #elif defined(__arm__)
-//#include <private/bionic_asm_arm.h>
+
+// #include <private/bionic_asm_arm.h>
 #define __bionic_asm_align 0
 #undef __bionic_asm_custom_entry
 #undef __bionic_asm_custom_end
@@ -63,9 +64,12 @@
 #define __bionic_asm_custom_end(f) .fnend
 #undef __bionic_asm_function_type
 #define __bionic_asm_function_type #function
+
 #elif defined(__x86_64__)
-//#include <private/bionic_asm_x86_64.h>
+
+// #include <private/bionic_asm_x86_64.h>
 #define __bionic_asm_align 16
+
 #endif
 
 
